@@ -1,4 +1,8 @@
-from context import poikit
+# -- coding: utf-8 --
+
+# test: python -m unittest tests/test_sample.py
+
+from .context import poikit
 import unittest
 
 class AdvancedTestSuite(unittest.TestCase):
