@@ -1,6 +1,5 @@
 # -- coding: utf-8 --
 
-import poikit.core as core
 import poikit.repository.gaode.poi as poi_repo
 import poikit.model.gaode.poi as poi
 print(poi_repo.get_poi_by_polygon(poi.Request(

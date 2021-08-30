@@ -1,6 +1,6 @@
 # -- coding: utf-8 --
 
-class point:
-    def __init__(self, lon, lat) -> None:
+class point(object):
+    def __init__(self, lon: float, lat: float) -> None:
         self.lon = lon
         self.lat = lat

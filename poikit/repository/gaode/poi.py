@@ -1,9 +1,10 @@
 # -- coding: utf-8 --
+from typing import Optional
 from ...api.gaode import poi as poi_api
 from ...model.gaode import poi as poi_model
 
 
-def get_poi_by_polygon(request, page=1, size=20, extensions="base"):
+def get_poi_by_polygon(request: poi_model.Request, page: Optional[int] = 1, size: Optional[int] = 20, extensions: Optional[str] = "base"):
     r = poi_api.get_poi_by_polygon(request, page, size, extensions)
 
     if r.status_code == 200:

@@ -1,10 +1,9 @@
 # -- coding: utf-8 --
+from typing import List, Optional
 
-from typing import List
 
-
-class Request:
-    def __init__(self, key, left, up, right, bottom, keywords=None, types=None) -> None:
+class Request(object):
+    def __init__(self, key: str, left: float, up: float, right: float, bottom: float, keywords: Optional[List[str]] = None, types: Optional[List[str]] = None) -> None:
         if keywords is None:
             keywords = []
         if types is None:
@@ -15,19 +14,9 @@ class Request:
         self.types = "|".join(types)
 
 
-class Response:
-    def __init__(self, status, info, infocode, count, items: List) -> None:
-        self.status = status
-        self.info = info
-        self.infocode = infocode
-        self.count = int(count)
-        self.pois = items
-
-    def __str__(self) -> str:
-        return '{' + 'status={}, info={}, infocode={}, count={}, '.format(self.status, self.info, self.infocode, str(self.count)) + "pois=[" + ", ".join(map(str, self.pois)) + "]" + '}'
-
-    class Item:
-        def __init__(self, id, name, type, typecode, address, location, tel, pname, cityname, adname) -> None:
+class Response(object):
+    class Item(object):
+        def __init__(self, id: str, name: str, type: str, typecode: str, address: str, location: str, tel: str, pname: str, cityname: str, adname: str) -> None:
             self.id = id
             self.name = name
             self.type = type
@@ -42,3 +31,13 @@ class Response:
 
         def __str__(self) -> str:
             return '{' + 'id={}, name={}, type={}, typecode={},address={}, location={}, {}, tel={}, province={}, city={}, adname={}'.format(self.id, self.name, self.type, self.typecode, self.address, str(self.lon), str(self.lat), self.tel, self.pname, self.cityname, self.adname) + '}'
+
+    def __init__(self, status: str, info: str, infocode: str, count: str, items: Item) -> None:
+        self.status = status
+        self.info = info
+        self.infocode = infocode
+        self.count = int(count)
+        self.pois = items
+
+    def __str__(self) -> str:
+        return '{' + 'status={}, info={}, infocode={}, count={}, '.format(self.status, self.info, self.infocode, str(self.count)) + "pois=[" + ", ".join(map(str, self.pois)) + "]" + '}'
