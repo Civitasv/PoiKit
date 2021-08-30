@@ -1,2 +1,3 @@
 .vscode
-poikit/__pycache__/*
+**/__pycache__
+
