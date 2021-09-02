@@ -1,22 +1,21 @@
 # -- coding: utf-8 --
-from typing import List, Optional
-
 
 class Request(object):
-    def __init__(self, key: str, left: float, up: float, right: float, bottom: float, keywords: Optional[List[str]] = None, types: Optional[List[str]] = None) -> None:
+    def __init__(self, key, rect, keywords=None, types=None) -> None:
         if keywords is None:
             keywords = []
         if types is None:
             types = []
         self.key = key
-        self.polygon = "{},{}|{},{}".format(left, up, right, bottom)
+        self.polygon = "{},{}|{},{}".format(
+            rect.left, rect.top, rect.right, rect.bottom)
         self.keywords = "|".join(keywords)
         self.types = "|".join(types)
 
 
 class Response(object):
     class Item(object):
-        def __init__(self, id: str, name: str, type: str, typecode: str, address: str, location: str, tel: str, pname: str, cityname: str, adname: str) -> None:
+        def __init__(self, id, name, type, typecode, address, location, tel, pname, cityname, adname) -> None:
             self.id = id
             self.name = name
             self.type = type
@@ -32,7 +31,7 @@ class Response(object):
         def __str__(self) -> str:
             return '{' + 'id={}, name={}, type={}, typecode={},address={}, location={}, {}, tel={}, province={}, city={}, adname={}'.format(self.id, self.name, self.type, self.typecode, self.address, str(self.lon), str(self.lat), self.tel, self.pname, self.cityname, self.adname) + '}'
 
-    def __init__(self, status: str, info: str, infocode: str, count: str, items: Item) -> None:
+    def __init__(self, status, info, infocode, count, items) -> None:
         self.status = status
         self.info = info
         self.infocode = infocode
