@@ -188,10 +188,10 @@ def export(result, output):
             csv_writer = csv.writer(
                 result_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL)
             csv_writer.writerow(["id", "name", "type", "typecode", "address",
-                                "lon", "lat", "tel", "pname", "cityname", "adname"])
+                                "lng", "lat", "tel", "pname", "cityname", "adname"])
             for item in result:
                 csv_writer.writerow([item.id, item.name, item.type, item.typecode, item.address,
-                                     item.lon, item.lat, item.tel, item.pname, item.cityname, item.adname])
+                                     item.lng, item.lat, item.tel, item.pname, item.cityname, item.adname])
     elif filetype == "geojson" or filetype == "shp":
         geojson = {}
         features = []
@@ -200,7 +200,7 @@ def export(result, output):
             item_obj["properties"] = {"id": str(item.id), "name": str(item.name), "type": str(item.type), "typecode": str(item.typecode),
                                       "address": str(item.address), "tel": str(item.tel), "pname": str(item.pname), "cityname": str(item.cityname), "adname": str(item.adname)}
             item_obj["geometry"] = {"type": "Point",
-                                    "coordinates": [item.lon, item.lat]}
+                                    "coordinates": [item.lng, item.lat]}
             features.append(item_obj)
         geojson["type"] = "FeatureCollection"
         geojson["features"] = features

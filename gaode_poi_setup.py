@@ -7,12 +7,12 @@ import poikit.execute.gaode.poi as poi
 keys = ["17b3ad7ccaafe0b0fd1041ce89d20024"]
 
 crawl_type = CrawlType.ADCODE
-crawl_data = "410000"
+crawl_data = "440305"
 # crawl_data = Rect(56.006919, 130.48231, 39.99713, 116.460988)
 # crawl_data = "user.geojson"
 
-keywords = ["肯德基"]
-types = [""]
+keywords = [""]
+types = ["消防机关"]
 threshold = 800
 thread_num = 4
 qps = 50

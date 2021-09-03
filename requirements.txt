@@ -1,2 +1,2 @@
 requests
-Kivy
+geopandas
