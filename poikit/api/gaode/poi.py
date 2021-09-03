@@ -1,5 +1,4 @@
 # -- coding: utf-8 --
-from ...model.gaode.poi import Request
 from . import requests
 from . import baseUrl
 

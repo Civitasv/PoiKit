@@ -1,22 +1,39 @@
 # -- coding: utf-8 --
-from poikit.model.gaode.rect import Rect
-import re
-import poikit.repository.gaode.poi as poi_repo
-import poikit.model.gaode.poi as poi
-import concurrent.futures
-import threading
-import time
-import csv
-import json
 import geopandas
+import json
+import csv
+import time
+import threading
+import concurrent.futures
+import re
+
+from geopandas.io.file import read_file
+from ...model.gaode import poi as poi_model
+from ...model.gaode.rect import Rect
+from ...repository.gaode import poi as poi_repo
+from ...model.gaode.crawl import CrawlType
+from ...api.datav import bound
 
 # 线程锁
 lock = threading.Lock()
 
 
+def crawl_poi(keys, crawl_type, data, keywords, types, threshold, thread_num, qps, output):
+    if crawl_type == CrawlType.RECT:
+        execute(keys, data, keywords, types,
+                threshold, thread_num, qps, output)
+    elif crawl_type == CrawlType.ADCODE or crawl_type == CrawlType.USER_CUSTOM:
+        df = geopandas.read_file(bound.get_district_url(
+            data)) if crawl_type == CrawlType.ADCODE else geopandas.read_file(data)
+        bounds = df.bounds
+        rect = Rect(bounds.at[0, 'maxy'], bounds.at[0, 'maxx'],
+                    bounds.at[0, 'miny'], bounds.at[0, 'minx'])
+        execute(keys, rect, keywords, types,
+                threshold, thread_num, qps, output)
+
+
 def execute(keys, rect, keywords, types, threshold, thread_num, qps, output):
     _keys = list(filter(check_key, keys))  # 所有合法key
-    print(_keys)
     if not check_rect(rect):
         print("{} 格式错误，请检查".format(rect))
         return
@@ -57,7 +74,7 @@ def generate_grids(grids, initial_pois, key, rect, keywords, types, threshold):
     page = 1
     size = 20
     res = poi_repo.get_poi_by_polygon(
-        poi.Request(key, rect, keywords, types), page, size)
+        poi_model.Request(key, rect, keywords, types), page, size)
     if not res or res.count == 0:
         return
 
@@ -103,7 +120,7 @@ def per_poi_task(keys, per_execute_time, grid, keywords, types, page, size):
         return False
 
     res = poi_repo.get_poi_by_polygon(
-        poi.Request(key, grid, keywords, types), page, size)
+        poi_model.Request(key, grid, keywords, types), page, size)
 
     if not res or res.infocode != '10000':
         with lock:
@@ -121,7 +138,7 @@ def per_poi_task(keys, per_execute_time, grid, keywords, types, page, size):
                 # 尝试其他key
                 key = get_key(keys)
                 res = poi_repo.get_poi_by_polygon(
-                    poi.Request(key, grid, keywords, types), page, size)
+                    poi_model.Request(key, grid, keywords, types), page, size)
 
                 if not res or res.infocode != '10000':
                     res = retry(key, grid, keywords, types, page, size)
@@ -155,7 +172,7 @@ def get_key(keys):
 def retry(key, grid, keywords, types, page, size):
     for _ in range(3):
         res = poi_repo.get_poi_by_polygon(
-            poi.Request(key, grid, keywords, types), page, size)
+            poi_model.Request(key, grid, keywords, types), page, size)
         if not res or res.infocode != '10000':
             retry(key, grid, keywords, types, page, size)
         else:

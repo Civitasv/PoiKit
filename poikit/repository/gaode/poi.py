@@ -5,7 +5,7 @@ from ...model.gaode import poi as poi_model
 
 def get_poi_by_polygon(request, page=1, size=20, extensions="base"):
     r = poi_api.get_poi_by_polygon(request, page, size, extensions)
-
+    print(r.url)
     if r.status_code == 200:
         response = r.json()
         items = []
