@@ -6,6 +6,9 @@ import poikit.model.gaode.poi as poi
 import concurrent.futures
 import threading
 import time
+import csv
+import json
+import geopandas
 
 # 线程锁
 lock = threading.Lock()
@@ -32,8 +35,9 @@ def execute(keys, rect, keywords, types, threshold, thread_num, qps, output):
                               _per_execute_time, thread_num, keywords, types))
 
     print("该区域共有POI数据：{}条".format(len(result)))
-    for r in result:
-        print(r)
+
+    # 3. 导出数据
+    export(result, output)
 
 
 def check_key(key):
@@ -157,6 +161,39 @@ def retry(key, grid, keywords, types, page, size):
         else:
             return res
     return False
+
+
+def export(result, output):
+    filetype = output.split(".")[-1]
+
+    if filetype == 'csv':
+        with open(output, mode="w", newline='', encoding="utf-8") as result_file:
+            csv_writer = csv.writer(
+                result_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            csv_writer.writerow(["id", "name", "type", "typecode", "address",
+                                "lon", "lat", "tel", "pname", "cityname", "adname"])
+            for item in result:
+                csv_writer.writerow([item.id, item.name, item.type, item.typecode, item.address,
+                                     item.lon, item.lat, item.tel, item.pname, item.cityname, item.adname])
+    elif filetype == "geojson" or filetype == "shp":
+        geojson = {}
+        features = []
+        for item in result:
+            item_obj = {"type": "Feature"}
+            item_obj["properties"] = {"id": str(item.id), "name": str(item.name), "type": str(item.type), "typecode": str(item.typecode),
+                                      "address": str(item.address), "tel": str(item.tel), "pname": str(item.pname), "cityname": str(item.cityname), "adname": str(item.adname)}
+            item_obj["geometry"] = {"type": "Point",
+                                    "coordinates": [item.lon, item.lat]}
+            features.append(item_obj)
+        geojson["type"] = "FeatureCollection"
+        geojson["features"] = features
+        if filetype == "geojson":
+            with open(output, "w", encoding="utf-8") as result_file:
+                result_file.write(json.dumps(
+                    geojson, ensure_ascii=False, indent=4))
+        else:
+            df = geopandas.GeoDataFrame.from_features(geojson)
+            df.to_file(output, driver="ESRI Shapefile", encoding="utf-8")
 
 
 def time_ms():
