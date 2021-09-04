@@ -51,10 +51,11 @@ def execute(keys, rect, keywords, types, extensions, threshold, thread_num, qps,
         result.extend(get_poi(keys, grids[i], initial_pois[i],
                               _per_execute_time, thread_num, keywords, types, extensions))
 
-    print("该区域共有POI数据：{}条".format(len(result)))
+    print("该区域外接矩形内共有POI数据：{}条".format(len(result)))
 
     # 3. 导出数据
     export(result, output)
+    print("数据已导出至{}，注意，目前数据为其外接矩形数据，请使用相关软件进一步过滤".format(output))
 
 
 def check_key(key):

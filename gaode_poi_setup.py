@@ -18,4 +18,4 @@ qps = 50
 output = "test.csv"
 
 poi.crawl_poi(keys, crawl_type, crawl_data, keywords,
-              types, threshold, thread_num, qps, output, 'all')
+              types, threshold, thread_num, qps, output, 'base')

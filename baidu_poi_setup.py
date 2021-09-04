@@ -10,7 +10,7 @@ crawl_data = "440305"
 # crawl_data = Rect(56.006919, 130.48231, 39.99713, 116.460988)
 # crawl_data = "user.geojson"
 
-keywords = ["消防机关"]
+keywords = ["消防"]
 types = [""]
 thread_num = 4
 qps = 50

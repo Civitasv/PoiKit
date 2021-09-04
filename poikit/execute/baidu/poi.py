@@ -7,7 +7,6 @@ import threading
 import concurrent.futures
 import re
 import math
-
 from ...model.point import Point
 from ...model.baidu import poi as poi_model
 from ...model.baidu.hexagon import Hexagon
@@ -20,10 +19,10 @@ from ...api.datav import bound
 lock = threading.Lock()
 
 
-def crawl_poi(keys, crawl_type, data, query, tag, thread_num, qps, output, coord_type=3, scope="1", filter_exp=""):
+def crawl_poi(keys, crawl_type, data, query, tag, thread_num, qps, output, output_coord_type=3, scope="1", baidu_filter_exp=""):
     if crawl_type == CrawlType.RECT:
         execute(keys, data, query, tag, thread_num, qps,
-                output, coord_type, scope, filter_exp)
+                output, output_coord_type, scope, baidu_filter_exp)
     elif crawl_type == CrawlType.ADCODE or crawl_type == CrawlType.USER_CUSTOM:
         df = geopandas.read_file(bound.get_district_url(
             data)) if crawl_type == CrawlType.ADCODE else geopandas.read_file(data)
@@ -31,10 +30,10 @@ def crawl_poi(keys, crawl_type, data, query, tag, thread_num, qps, output, coord
         rect = Rect(bounds.at[0, 'maxy'], bounds.at[0, 'maxx'],
                     bounds.at[0, 'miny'], bounds.at[0, 'minx'])
         execute(keys, rect, query, tag, thread_num, qps,
-                output, coord_type, scope, filter_exp)
+                output, output_coord_type, scope, baidu_filter_exp)
 
 
-def execute(keys, rect, query, tag, thread_num, qps, output, coord_type, scope, filter_exp):
+def execute(keys, rect, query, tag, thread_num, qps, output, output_coord_type, scope, baidu_filter_exp):
     _keys = list(filter(check_key, keys))  # 所有合法key
     if not check_rect(rect):
         print("{} 格式错误，请检查".format(rect))
@@ -49,15 +48,17 @@ def execute(keys, rect, query, tag, thread_num, qps, output, coord_type, scope, 
     result = []
     for hexagon in hexagons:
         result.extend(get_poi(keys, hexagon, _per_execute_time,
-                      thread_num, query, tag, coord_type, scope, filter_exp))
+                      thread_num, query, tag, output_coord_type, scope, baidu_filter_exp))
 
-    print("该区域共有POI数据：{}条".format(len(result)))
+    print("已爬取POI数据：{}条".format(len(result)))
 
     # 3. 去重
     result = list(set(result))
     print("去重完成，该区域共有POI数据：{}条".format(len(result)))
+
     # 4. 导出数据
     export(result, output)
+    print("数据已导出至{}，注意，目前数据为其外接矩形数据，请使用相关软件进一步过滤".format(output))
 
 
 def check_key(key):
@@ -95,12 +96,12 @@ def generate_hexagons(hexagons, rect):
         x_start += distance
 
 
-def get_poi(keys, hexagon, per_execute_time, thread_num, query, tag, coord_type, scope, filter_exp):
+def get_poi(keys, hexagon, per_execute_time, thread_num, query, tag, output_coord_type, scope, filter_exp):
     result = []
 
     # 获取第一页数据
     first_page = poi_repo.get_poi_by_circle(poi_model.Request(
-        keys[0], hexagon, query, tag, scope, filter_exp, coord_type))
+        keys[0], hexagon, query, tag, scope, filter_exp, output_coord_type))
     if not first_page or first_page.status != 0:
         return result
 
@@ -115,7 +116,7 @@ def get_poi(keys, hexagon, per_execute_time, thread_num, query, tag, coord_type,
                                    hexagon=hexagon,
                                    query=query,
                                    tag=tag,
-                                   coord_type=coord_type,
+                                   output_coord_type=output_coord_type,
                                    scope=scope,
                                    filter_exp=filter_exp,
                                    page=page,
@@ -129,7 +130,7 @@ def get_poi(keys, hexagon, per_execute_time, thread_num, query, tag, coord_type,
     return result
 
 
-def per_poi_task(keys, per_execute_time, hexagon, query, tag, coord_type, scope, filter_exp, page, size):
+def per_poi_task(keys, per_execute_time, hexagon, query, tag, output_coord_type, scope, filter_exp, page, size):
     start = time.perf_counter()
     key = get_key(keys)
 
@@ -137,13 +138,13 @@ def per_poi_task(keys, per_execute_time, hexagon, query, tag, coord_type, scope,
         return False
 
     res = poi_repo.get_poi_by_circle(poi_model.Request(
-        key, hexagon, query, tag, scope, filter_exp, coord_type))
+        key, hexagon, query, tag, scope, filter_exp, output_coord_type))
 
     if not res or res.status != 0:
         with lock:
             if key in keys:
                 res = retry(key, hexagon, query, tag, scope,
-                            filter_exp, coord_type, page, size)
+                            filter_exp, output_coord_type, page, size)
                 if not res or res.infocode != 0:
                     # 数据获取失败
                     print("数据获取失败，key={},query={},tag={},message={}".format(
@@ -156,11 +157,11 @@ def per_poi_task(keys, per_execute_time, hexagon, query, tag, coord_type, scope,
                 # 尝试其他key
                 key = get_key(keys)
                 res = poi_repo.get_poi_by_circle(poi_model.Request(
-                    key, hexagon, query, tag, scope, filter_exp, coord_type))
+                    key, hexagon, query, tag, scope, filter_exp, output_coord_type))
 
                 if not res or res.infocode != 0:
                     res = retry(key, hexagon, query, tag, scope,
-                                filter_exp, coord_type, page, size)
+                                filter_exp, output_coord_type, page, size)
                     if not res or res.infocode != 0:
                         # 数据获取失败
                         print("数据获取失败，key={},query={},tag={},message={}".format(
@@ -188,12 +189,12 @@ def get_key(keys):
     return key
 
 
-def retry(key, hexagon, query, tag, coord_type, scope, filter_exp):
+def retry(key, hexagon, query, tag, output_coord_type, scope, filter_exp):
     for _ in range(3):
         res = poi_repo.get_poi_by_circle(poi_model.Request(
-            key, hexagon, query, tag, scope, filter_exp, coord_type))
+            key, hexagon, query, tag, scope, filter_exp, output_coord_type))
         if not res or res.infocode != 0:
-            retry(key, hexagon, query, tag, coord_type, scope, filter_exp)
+            retry(key, hexagon, query, tag, output_coord_type, scope, filter_exp)
         else:
             return res
     return False
