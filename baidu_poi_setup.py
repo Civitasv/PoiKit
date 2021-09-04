@@ -1,17 +1,21 @@
 # -- coding: utf-8 --
 
-import poikit.model.baidu.poi as poi_model
-import poikit.repository.baidu.poi as poi_repository
+from poikit.model.crawl import CrawlType
+import poikit.execute.baidu.poi as poi
 
 ak = ["99Wx6UCaC50AaD6vtFV7N6iTXhH29UyP"]
 
-query = "ATM机"
-tag = "银行"
-region = "北京"
-threshold = 200
+crawl_type = CrawlType.ADCODE
+crawl_data = "440305"
+# crawl_data = Rect(56.006919, 130.48231, 39.99713, 116.460988)
+# crawl_data = "user.geojson"
+
+keywords = ["消防机关"]
+types = [""]
 thread_num = 4
 qps = 50
-output = "test.geojson"
+output = "test.csv"
 
-print(poi_repository.get_poi_by_region(
-    poi_model.Request(ak[0], query, region)))
+
+poi.crawl_poi(ak, crawl_type, crawl_data, keywords,
+              types, thread_num, qps, output)

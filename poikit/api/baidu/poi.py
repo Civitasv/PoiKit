@@ -5,12 +5,13 @@ from . import base_url
 url = '/place/v2/search'
 
 
-def get_poi_by_region(request, page=1, size=20):
+def get_poi_by_circle(request, page=1, size=20):
     params = {
         "query": request.query,
         "tag": request.tag,
-        "region": request.region,
-        "city_limit": request.city_limit,
+        "location": "{},{}".format(request.center.lat, request.center.lng),
+        "radius": request.radius,
+        "radius_limit": "true",
         "extensions_adcode": request.extensions_adcode,
         "scope": request.scope,
         "filter": request.filter_exp,

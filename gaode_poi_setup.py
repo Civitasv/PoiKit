@@ -1,7 +1,6 @@
 # -- coding: utf-8 --
 
-from poikit.model.gaode.crawl import CrawlType
-from poikit.model.gaode.rect import Rect
+from poikit.model.crawl import CrawlType
 import poikit.execute.gaode.poi as poi
 
 keys = ["17b3ad7ccaafe0b0fd1041ce89d20024"]
@@ -16,7 +15,7 @@ types = ["消防机关"]
 threshold = 800
 thread_num = 4
 qps = 50
-output = "test.geojson"
+output = "test.csv"
 
 poi.crawl_poi(keys, crawl_type, crawl_data, keywords,
-              types, threshold, thread_num, qps, output)
+              types, threshold, thread_num, qps, output, 'all')

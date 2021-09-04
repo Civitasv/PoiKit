@@ -1,4 +1,6 @@
 # -- coding: utf-8 --
+import json
+
 
 class Request(object):
     def __init__(self, key, rect, keywords=None, types=None, extensions="base") -> None:
@@ -16,7 +18,7 @@ class Request(object):
 
 class Response(object):
     class Item(object):
-        def __init__(self, id, name, type, typecode, address, location, tel, pname, cityname, adname) -> None:
+        def __init__(self, id, name, type, typecode, address, location, tel, pname, cityname, adname, details_info) -> None:
             self.id = id
             self.name = name
             self.type = type
@@ -28,6 +30,7 @@ class Response(object):
             self.pname = pname
             self.cityname = cityname
             self.adname = adname
+            self.details = json.dumps(details_info, ensure_ascii=False)
 
         def __str__(self) -> str:
             return '{' + 'id={}, name={}, type={}, typecode={},address={}, location={}, {}, tel={}, province={}, city={}, adname={}'.format(self.id, self.name, self.type, self.typecode, self.address, str(self.lng), str(self.lat), self.tel, self.pname, self.cityname, self.adname) + '}'
